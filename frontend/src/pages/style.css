@@ -1,0 +1,52 @@
+.friend {
+	display: flex;
+	align-items: center;
+	border-radius: 30px;
+	padding-left: 20px;
+	height: 60px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	cursor: pointer;
+	margin-bottom: 15px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.friend-list {
+	background-color: #f2f2f2;
+	display: flex;
+	flex-direction: column;
+	width: 350px;
+	padding-left: 20px;
+	padding-right: 20px;
+}
+.chat-area {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+}
+.chat-setting {
+	font-size: 30px;
+	margin-left: 30px;
+	cursor: pointer;
+}
+.chat-content {
+	flex: 1;
+	border: 1px solid yellow;
+}
+
+.chat-footer {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	height: 80px;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+.chat-footer i {
+	font-size: 30px;
+	cursor: pointer;
+}
+.chat-area,
+.sidebar,
+.friend-list {
+	padding-top: 10px;
+}
