@@ -1,6 +1,6 @@
 import { InputText } from "primereact/inputtext";
 import "./style.css";
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 const ChatPage = () => {
 	const users = [
@@ -17,18 +17,79 @@ const ChatPage = () => {
 			message: "How's your day?",
 		},
 	];
+	const myID = "123";
+	const messagesContainer = [
+		[
+			{
+				senderId: myID,
+				message: "Hi Kien Tran",
+			},
+			{
+				senderId: "321",
+				message: "Hello my friend",
+			},
+		],
+		[
+			{
+				senderId: myID,
+				message: "Hey bro!",
+			},
+		],
+		[
+			{
+				senderId: "425",
+				message: "Hello, are u Kien Tran?",
+			},
+		],
+	];
+	const chatRef = useRef();
 	const [select, setSelect] = useState(0);
+	const [myMessage, setMyMessage] = useState("");
+	const [friendMessage, setFriendMessage] = useState("");
+	const [container, setContainer] = useState(messagesContainer);
+
+	// const scrollToBottom = () => {
+
+	// }
+
+	const [messages, setMessages] = useState(messagesContainer[select]);
+
+	const handleKeyDown = (e) => {
+		if (e.key === "Enter") {
+			// setMessages([
+			// 	...messages,
+
+			// ]);
+			setMessages([
+				...container[select],
+				{
+					senderId: myID,
+					message: myMessage,
+				},
+			]);
+			// const updatedMessages = [
+			// 	...container[select],
+			// 	{
+			// 		senderId: myID,
+			// 		message: myMessage,
+			// 	},
+			// ];
+			container[select].push({
+				senderId: myID,
+				message: myMessage,
+			});
+			setContainer(container);
+			setMyMessage("");
+		}
+	};
+
+	useEffect(() => {
+		const chat = chatRef.current;
+		chat.scrollTop = chat.scrollHeight;
+	}, [messages]);
 	return (
 		<div>
-			<div
-				style={{
-					width: "1200px",
-					height: "800px",
-					border: "1px solid red",
-					borderRadius: "10px",
-					display: "flex",
-				}}
-			>
+			<div className="chat-app">
 				<div
 					className="sidebar"
 					style={{
@@ -106,7 +167,10 @@ const ChatPage = () => {
 								className="friend"
 								style={select === i ? { backgroundColor: "#4e71ff" } : {}}
 								key={i}
-								onClick={() => setSelect(i)}
+								onClick={() => {
+									setSelect(i);
+									setMessages(messagesContainer[i]);
+								}}
 							>
 								<div>
 									<i className="pi pi-user" style={{ fontSize: "25px" }}></i>
@@ -165,7 +229,21 @@ const ChatPage = () => {
 							</div>
 						</div>
 					</div>
-					<div className="chat-content"></div>
+					<div className="chat-content" ref={chatRef}>
+						{container[select].map((mess, index) =>
+							mess.senderId === myID ? (
+								<div className="my-turn" key={index}>
+									<div className="my-message">{mess.message}</div>
+									<i className="pi pi-user chat-avatar"></i>
+								</div>
+							) : (
+								<div className="friend-turn" key={index}>
+									<i className="pi pi-user chat-avatar"></i>
+									<div className="friend-message">{mess.message}</div>
+								</div>
+							)
+						)}
+					</div>
 					<div className="chat-footer">
 						<i className="pi pi-table"></i>
 						<i className="pi pi-camera"></i>
@@ -175,6 +253,11 @@ const ChatPage = () => {
 							type="text"
 							style={{ borderRadius: "20px" }}
 							placeholder="Message..."
+							value={myMessage}
+							onChange={(e) => {
+								setMyMessage(e.target.value);
+							}}
+							onKeyDown={handleKeyDown}
 						></InputText>
 						<i className="pi pi-face-smile"></i>
 					</div>

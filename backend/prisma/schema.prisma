@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  username  String   @unique
+  email     String   @unique
+  password  String
+  avatarUrl String?
+  isOnline  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages    Message[]            @relation("UserMessages")
+  messageId   String?              @unique @db.ObjectId
+  lastMessage Message?             @relation("UserLastMessage", fields: [messageId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  members     ConversationMember[]
+  SeenMessage SeenMessage[]
+}
+
+model Message {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  conversationId String       @db.ObjectId
+
+  sender   User   @relation("UserMessages", fields: [senderId], references: [id])
+  senderId String @db.ObjectId
+
+  text      String?
+  imageUrl  String?
+  createdAt DateTime @default(now())
+
+  lastMessageOfConversation Conversation? @relation("LastMessage")
+  lastMessageOfUser         User?         @relation("UserLastMessage")
+  SeenMessage               SeenMessage[]
+}
+
+model Conversation {
+  id            String               @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  isGroup       Boolean              @default(false)
+  members       ConversationMember[]
+  messages      Message[]
+  lastMessageId String?              @unique @db.ObjectId
+  lastMessage   Message?             @relation("LastMessage", fields: [lastMessageId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+}
+
+model SeenMessage {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  message   Message  @relation(fields: [messageId], references: [id])
+  messageId String   @db.ObjectId
+  seenAt    DateTime @default(now())
+
+  @@unique([userId, messageId])
+}
+
+model ConversationMember {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  user           User         @relation(fields: [userId], references: [id])
+  userId         String       @db.ObjectId
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  conversationId String       @db.ObjectId
+  joinedAt       DateTime     @default(now())
+  unreadCount    Int          @default(0)
+  isTyping       Boolean      @default(false)
+
+  @@unique([userId, conversationId])
+}
