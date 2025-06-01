@@ -1,11 +1,11 @@
 .chat-app {
 	width: 1200px;
 	height: 800px;
-	border: 1px solid red;
 	border-radius: 10px;
 	display: grid;
 	grid-template-columns: 240px 350px 1fr;
 	grid-template-rows: 100%;
+	box-shadow: 0 1px 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .friend {
@@ -31,7 +31,7 @@
 .chat-area {
 	/* flex: 1; */
 	width: 100%;
-	border: 1px solid green;
+	/* border: 1px solid green; */
 	height: 100%;
 	/* min-height: 0; */
 	display: flex;
@@ -64,7 +64,7 @@
 .chat-content {
 	flex: 1;
 	/* height: 100%; */
-	border: 1px solid yellow;
+	/* border: 1px solid yellow; */
 	overflow-y: auto;
 	/* display: flex;
 	flex-direction: column; */

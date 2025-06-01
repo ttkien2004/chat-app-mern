@@ -6,7 +6,7 @@ import "./index.css";
 // import ChatPage from "./pages/ChatPage";
 // import AuthPage from "./pages/AuthPage";
 
-// import { ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import HomePage from "./pages/HomePage";
 import AuthPage from "./pages/AuthPage";
 import ChatPage from "./pages/ChatPage";
@@ -14,6 +14,7 @@ import ChatPage from "./pages/ChatPage";
 function App() {
 	return (
 		<div>
+			<ToastContainer />
 			<BrowserRouter>
 				<Routes>
 					<Route path="/" element={<HomePage />}></Route>

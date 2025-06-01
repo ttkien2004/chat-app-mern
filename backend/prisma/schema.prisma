@@ -17,7 +17,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   messages    Message[]            @relation("UserMessages")
-  messageId   String?              @unique @db.ObjectId
+  messageId   String?              @default("null") @db.ObjectId
   lastMessage Message?             @relation("UserLastMessage", fields: [messageId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   members     ConversationMember[]
   SeenMessage SeenMessage[]
@@ -36,8 +36,9 @@ model Message {
   createdAt DateTime @default(now())
 
   lastMessageOfConversation Conversation? @relation("LastMessage")
-  lastMessageOfUser         User?         @relation("UserLastMessage")
+  // lastMessageOfUser         User?         @relation("UserLastMessage")
   SeenMessage               SeenMessage[]
+  lastUsedBy                User[]        @relation("UserLastMessage")
 }
 
 model Conversation {

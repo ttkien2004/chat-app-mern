@@ -88,7 +88,14 @@ const ChatPage = () => {
 		chat.scrollTop = chat.scrollHeight;
 	}, [messages]);
 	return (
-		<div>
+		<div
+			style={{
+				display: "flex",
+				alignItems: "center",
+				justifyContent: "center",
+				minHeight: "100vh",
+			}}
+		>
 			<div className="chat-app">
 				<div
 					className="sidebar"
