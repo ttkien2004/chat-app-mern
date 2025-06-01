@@ -20,9 +20,12 @@ export const AuthContextProvider = ({ children }) => {
 	const [state, dispatch] = useReducer(authReducer, {
 		user: null,
 	});
-	// useEffect(() => {
-
-	// })
+	useEffect(() => {
+		const data = JSON.parse(sessionStorage.getItem("data") || "{}");
+		if (data) {
+			dispatch({ type: "LOGIN", payload: data });
+		}
+	}, []);
 	return (
 		<AuthContext.Provider value={{ ...state, dispatch }}>
 			{children}

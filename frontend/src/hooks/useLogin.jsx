@@ -12,8 +12,8 @@ const useLogin = () => {
 		try {
 			const response = await authApi.login(username, password);
 			if (response) {
-				// console.log(response);
-				sessionStorage.setItem("token", response.data);
+				sessionStorage.setItem("data", JSON.stringify(response.data));
+				dispatch({ type: "LOGIN", payload: response.data });
 				toast.success("Login successfully!");
 				setTimeout(() => {
 					navigate("/chat");

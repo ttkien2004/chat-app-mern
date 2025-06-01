@@ -24,8 +24,7 @@ const loginService = async (username, password) => {
 	if (!match) {
 		throw Error("Password is not correct!");
 	}
-
-	return token;
+	return { token, username, id: exists.id };
 };
 const signupService = async (username, password) => {
 	const exists = await prisma.user.findUnique({

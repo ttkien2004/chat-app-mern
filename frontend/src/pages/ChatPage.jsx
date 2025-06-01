@@ -1,6 +1,9 @@
 import { InputText } from "primereact/inputtext";
 import "./style.css";
 import { useEffect, useState, useRef } from "react";
+import { useAuthContext } from "../hooks/useAuthContext";
+import socket from "../socket/socket";
+import chatApi from "../services/ChatService";
 
 const ChatPage = () => {
 	const users = [
@@ -18,6 +21,8 @@ const ChatPage = () => {
 		},
 	];
 	const myID = "123";
+	const { user } = useAuthContext();
+
 	const messagesContainer = [
 		[
 			{
@@ -44,15 +49,18 @@ const ChatPage = () => {
 	];
 	const chatRef = useRef();
 	const [select, setSelect] = useState(0);
-	const [myMessage, setMyMessage] = useState("");
-	const [friendMessage, setFriendMessage] = useState("");
+	const [myMessage, setMyMessage] = useState(""); // Gửi tin nhắn
+	const [friendMessage, setFriendMessage] = useState(""); // Bạn gửi tin nhắn
 	const [container, setContainer] = useState(messagesContainer);
-
+	const [friendList, setFriendList] = useState([]);
+	const [conversationId, setConversationId] = useState("");
+	const [friendId, setFriendId] = useState("");
+	const [conversationName, setConversationName] = useState(""); // Tên của conversation
 	// const scrollToBottom = () => {
 
 	// }
 
-	const [messages, setMessages] = useState(messagesContainer[select]);
+	const [messages, setMessages] = useState([]);
 
 	const handleKeyDown = (e) => {
 		if (e.key === "Enter") {
@@ -87,6 +95,43 @@ const ChatPage = () => {
 		const chat = chatRef.current;
 		chat.scrollTop = chat.scrollHeight;
 	}, [messages]);
+	useEffect(() => {
+		// let friendList = [];
+		if (!user) return;
+		chatApi
+			.getUserList(user.id)
+			.then((res) => {
+				// console.log(res.data);
+				setFriendList(res.data);
+				// setMessages(res.data.messages);
+				// setConversationId(res.data.id);
+			})
+			.catch((err) => {
+				console.log(err);
+			});
+	}, [user]);
+	useEffect(() => {
+		socket.on("connect", () => {
+			console.log("COnnected to socket server:", socket.id);
+		});
+
+		socket.on("receive-message", (message) => {
+			console.log("Message received: ", message);
+		});
+		return () => {
+			socket.off("connect");
+			socket.off("receive-message");
+		};
+	}, []);
+	const sendMessage = (e) => {
+		if (e.key === "Enter") {
+			socket.emit("send-message", {
+				senderId: user.id,
+				text: myMessage,
+				conversationId: conversationId,
+			});
+		}
+	};
 	return (
 		<div
 			style={{
@@ -169,40 +214,51 @@ const ChatPage = () => {
 						<div style={{ marginLeft: "20px" }}>Search Message...</div>
 					</div>
 					<div className="chat-list">
-						{users.map((user, i) => (
-							<div
-								className="friend"
-								style={select === i ? { backgroundColor: "#4e71ff" } : {}}
-								key={i}
-								onClick={() => {
-									setSelect(i);
-									setMessages(messagesContainer[i]);
-								}}
-							>
-								<div>
-									<i className="pi pi-user" style={{ fontSize: "25px" }}></i>
-								</div>
-								<div
-									style={{
-										display: "flex",
-										flexDirection: "column",
-										justifyContent: "space-between",
-										height: "100%",
-										marginLeft: "20px",
-									}}
-								>
-									<div style={{ color: "black", fontWeight: "bold" }}>
-										{user.name}
-									</div>
-									<div
-										className="message"
-										style={{ color: "rgb(180,180,180)" }}
-									>
-										{user.message}
-									</div>
-								</div>
-							</div>
-						))}
+						{friendList.map((memberList) => {
+							return memberList.members.map(
+								(member, i) =>
+									member.userId !== user.id && (
+										<div
+											className="friend"
+											style={select === i ? { backgroundColor: "#4e71ff" } : {}}
+											key={i}
+											onClick={() => {
+												setSelect(i);
+												setConversationId(memberList.id);
+												// setMessages(messagesContainer[i]);
+												setConversationName(member.user.username);
+											}}
+										>
+											<div>
+												<i
+													className="pi pi-user"
+													style={{ fontSize: "25px" }}
+												></i>
+											</div>
+											<div
+												style={{
+													display: "flex",
+													flexDirection: "column",
+													justifyContent: "space-between",
+													height: "100%",
+													marginLeft: "20px",
+												}}
+											>
+												<div style={{ color: "black", fontWeight: "bold" }}>
+													{member.user.username}
+												</div>
+												{/* Hiển thị last message */}
+												<div
+													className="message"
+													style={{ color: "rgb(180,180,180)" }}
+												>
+													{"Last message"}
+												</div>
+											</div>
+										</div>
+									)
+							);
+						})}
 					</div>
 				</div>
 				<div className="chat-area">
@@ -227,7 +283,7 @@ const ChatPage = () => {
 										marginRight: "10px",
 									}}
 								></i>
-								<div style={{ fontSize: "30px" }}>{users[select].name}</div>
+								<div style={{ fontSize: "30px" }}>{conversationName}</div>
 							</div>
 							<div style={{ display: "flex" }}>
 								<i className="pi pi-phone chat-setting"></i>
@@ -237,7 +293,7 @@ const ChatPage = () => {
 						</div>
 					</div>
 					<div className="chat-content" ref={chatRef}>
-						{container[select].map((mess, index) =>
+						{messages.map((mess, index) =>
 							mess.senderId === myID ? (
 								<div className="my-turn" key={index}>
 									<div className="my-message">{mess.message}</div>
@@ -264,7 +320,7 @@ const ChatPage = () => {
 							onChange={(e) => {
 								setMyMessage(e.target.value);
 							}}
-							onKeyDown={handleKeyDown}
+							onKeyDown={sendMessage}
 						></InputText>
 						<i className="pi pi-face-smile"></i>
 					</div>

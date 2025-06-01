@@ -3,8 +3,8 @@ const { loginService, signupService } = require("../services/authService");
 const loginController = async (req, res) => {
 	const { username, password } = req.body;
 	try {
-		const token = await loginService(username, password);
-		res.status(200).json({ data: token });
+		const response = await loginService(username, password);
+		res.status(200).json({ data: response });
 	} catch (err) {
 		res.status(400).json({ error: err.message });
 	}
