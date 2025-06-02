@@ -9,10 +9,11 @@ const Header = () => {
 	const { user } = useAuthContext();
 	const [userName, setUsername] = useState("");
 	useEffect(() => {
+		console.log(user);
 		if (user) {
 			setUsername(user.username);
 		}
-	}, [user]);
+	}, []);
 	const { logout } = useLogout();
 	const handleLogout = async () => {
 		await logout(user.id);
@@ -21,9 +22,9 @@ const Header = () => {
 		<div className="header">
 			<div className="icon">😎 Chat App Demo</div>
 			<div className="auth">
-				{userName ? (
+				{user && user.username ? (
 					<div style={{ display: "flex", alignItems: "center" }}>
-						<div style={{ marginRight: "15px" }}>{userName}</div>
+						<div style={{ marginRight: "15px" }}>{user.username}</div>
 						<div>
 							<Button label="Logout" outlined onClick={handleLogout}></Button>
 						</div>

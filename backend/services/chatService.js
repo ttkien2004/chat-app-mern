@@ -27,6 +27,7 @@ const getMemberList = async (userId) => {
 					text: true,
 				},
 			},
+			lastMessage: true,
 		},
 	});
 	if (!memberList) {

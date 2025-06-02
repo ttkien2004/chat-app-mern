@@ -4,6 +4,10 @@ import { useEffect, useState, useRef } from "react";
 import { useAuthContext } from "../hooks/useAuthContext";
 import socket from "../socket/socket";
 import chatApi from "../services/ChatService";
+import { Button } from "primereact/button";
+import FriendList from "./FriendList";
+import FriendRequest from "./FriendRequest";
+import PeopleList from "./PeopleList";
 
 const ChatPage = () => {
 	const users = [
@@ -57,40 +61,13 @@ const ChatPage = () => {
 	const [friendId, setFriendId] = useState("");
 	const [conversationName, setConversationName] = useState(""); // Tên của conversation
 	const [friendOnline, setFriendOnline] = useState(false);
+	const [allMessages, setAllMessages] = useState({});
+	const [service, setService] = useState(0);
 	// const scrollToBottom = () => {
 
 	// }
 
 	const [messages, setMessages] = useState([]);
-
-	const handleKeyDown = (e) => {
-		if (e.key === "Enter") {
-			// setMessages([
-			// 	...messages,
-
-			// ]);
-			setMessages([
-				...container[select],
-				{
-					senderId: myID,
-					message: myMessage,
-				},
-			]);
-			// const updatedMessages = [
-			// 	...container[select],
-			// 	{
-			// 		senderId: myID,
-			// 		message: myMessage,
-			// 	},
-			// ];
-			container[select].push({
-				senderId: myID,
-				message: myMessage,
-			});
-			setContainer(container);
-			setMyMessage("");
-		}
-	};
 
 	useEffect(() => {
 		const chat = chatRef.current;
@@ -102,10 +79,15 @@ const ChatPage = () => {
 		chatApi
 			.getUserList(user.id)
 			.then((res) => {
-				// console.log(res.data);
+				console.log(res.data);
 				setFriendList(res.data);
 				// setMessages(res.data.messages);
 				// setConversationId(res.data.id);
+				let newMessageMap = {};
+				res.data.forEach((conversation) => {
+					newMessageMap[conversation.id] = conversation.messages;
+				});
+				setAllMessages(newMessageMap);
 			})
 			.catch((err) => {
 				console.log(err);
@@ -131,6 +113,22 @@ const ChatPage = () => {
 			// 		conversationId: message.conversationId,
 			// 	},
 			// ]);
+			setAllMessages((prev) => {
+				const updated = { ...prev };
+				if (!updated[message.conversationId]) {
+					updated[message.conversationId] = [];
+				}
+				const existing = updated[message.conversationId];
+				updated[message.conversationId] = [
+					...existing,
+					{
+						text: message.text,
+						conversationId: message.conversationId,
+						senderId: message.senderId,
+					},
+				];
+				return updated;
+			});
 		});
 		return () => {
 			socket.off("connect");
@@ -150,14 +148,25 @@ const ChatPage = () => {
 				conversationId: conversationId,
 			});
 			// console.log(conversationId);
+			// setMessages((prev) => [
+			// 	...prev,
+			// 	{
+			// 		senderId: user.id,
+			// 		text: myMessage, // dùng "message" để thống nhất với UI
+			// 		conversationId: conversationId,
+			// 	},
+			// ]);
+
 			setMessages((prev) => [
 				...prev,
 				{
 					senderId: user.id,
-					text: myMessage, // dùng "message" để thống nhất với UI
+					text: myMessage,
 					conversationId: conversationId,
 				},
 			]);
+
+			setMyMessage("");
 		}
 	};
 	const checkUserOnline = (userId) => {
@@ -193,17 +202,17 @@ const ChatPage = () => {
 							marginTop: "160px",
 						}}
 					>
-						<div>
+						<div onClick={() => setService(0)}>
 							<i className="pi pi-comments" style={{ fontSize: "30px" }}>
 								&nbsp;Chat
 							</i>
 						</div>
-						<div>
+						<div onClick={() => setService(1)}>
 							<i className="pi pi-users" style={{ fontSize: "30px" }}>
 								&nbsp;People
 							</i>
 						</div>
-						<div>
+						<div onClick={() => setService(2)}>
 							<i className="pi pi-bell" style={{ fontSize: "30px" }}>
 								&nbsp;Request
 							</i>
@@ -211,92 +220,23 @@ const ChatPage = () => {
 					</div>
 				</div>
 				<div className="friend-list">
-					<div
-						className="friend-list-header"
-						style={{
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "space-between",
-						}}
-					>
-						<div style={{ fontSize: "35px" }}>Chats</div>
-						<div style={{ display: "flex" }}>
-							<i
-								className="pi pi-camera"
-								style={{ fontSize: "30px", marginRight: "20px" }}
-							></i>
-							<i className="pi pi-expand" style={{ fontSize: "30px" }}></i>
-						</div>
-					</div>
-					<div
-						className="search-input"
-						style={{
-							borderRadius: "20px",
-							display: "flex",
-							alignItems: "center",
-							marginTop: "30px",
-							marginBottom: "80px",
-							backgroundColor: "#B2C6D5",
-							height: "40px",
-							paddingLeft: "20px",
-						}}
-					>
-						<div>
-							<i className="pi pi-comments"></i>
-						</div>
-						<div style={{ marginLeft: "20px" }}>Search Message...</div>
-					</div>
-					<div className="chat-list">
-						{friendList.map((memberList, index) => {
-							return memberList.members.map(
-								(member, i) =>
-									member.userId !== user.id && (
-										<div
-											className="friend"
-											style={
-												select === index ? { backgroundColor: "#4e71ff" } : {}
-											}
-											key={i}
-											onClick={() => {
-												console.log(member.user);
-												setSelect(index);
-												setConversationId(memberList.id);
-												setMessages(memberList.messages);
-												setConversationName(member.user.username);
-												checkUserOnline(member.user.id);
-											}}
-										>
-											<div>
-												<i
-													className="pi pi-user"
-													style={{ fontSize: "25px" }}
-												></i>
-											</div>
-											<div
-												style={{
-													display: "flex",
-													flexDirection: "column",
-													justifyContent: "space-between",
-													height: "100%",
-													marginLeft: "20px",
-												}}
-											>
-												<div style={{ color: "black", fontWeight: "bold" }}>
-													{member.user.username}
-												</div>
-												{/* Hiển thị last message */}
-												<div
-													className="message"
-													style={{ color: "rgb(180,180,180)" }}
-												>
-													{"Last message"}
-												</div>
-											</div>
-										</div>
-									)
-							);
-						})}
-					</div>
+					{service === 0 && (
+						<FriendList
+							friendList={friendList}
+							user={user}
+							select={select}
+							setSelect={setSelect}
+							setConversationId={setConversationId}
+							conversationId={conversationId}
+							setConversationName={setConversationName}
+							setMessages={setMessages}
+							messages={messages}
+							allMessages={allMessages}
+							checkUserOnline={checkUserOnline}
+						/>
+					)}
+					{service === 1 && <PeopleList />}
+					{service === 2 && <FriendRequest />}
 				</div>
 				<div className="chat-area">
 					<div className="chat-header">
