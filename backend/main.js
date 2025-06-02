@@ -35,8 +35,28 @@ const port = process.env.PORT || 5000;
 // 	.catch((err) => {
 // 		console.error(err.message);
 // 	});
+const onlineUsers = new Map();
 io.on("connection", (socket) => {
 	console.log("A user connected: ", socket.id);
+
+	socket.on("user-connected", (userId) => {
+		onlineUsers.set(userId, socket.id);
+		console.log(userId, socket.id);
+	});
+	socket.on("disconnect", () => {
+		console.log("dissss");
+		for (let [uid, sid] of onlineUsers.entries()) {
+			if (sid === socket.id) {
+				onlineUsers.delete(uid);
+				break;
+			}
+		}
+	});
+	socket.on("check-user-online", (userId, callback) => {
+		const isOnline = onlineUsers.has(userId);
+		console.log(userId, isOnline);
+		callback(isOnline);
+	});
 
 	socket.on("send-message", async (data) => {
 		const { conversationId, text, senderId } = data;

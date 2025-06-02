@@ -6,9 +6,7 @@ const HomePage = () => {
 		<div
 			style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
 		>
-			<Header />
 			Hello home page
-			<Footer />
 		</div>
 	);
 };

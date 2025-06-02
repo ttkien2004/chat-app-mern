@@ -29,6 +29,20 @@ const authApi = {
 			// console.error(err.error);
 		}
 	},
+	logout: async (userId) => {
+		try {
+			const response = await axiosClient.post("/auth/logout", {
+				userId,
+			});
+			if (response) {
+				return {
+					message: "Logout successfully",
+				};
+			}
+		} catch (err) {
+			throw err.response.data;
+		}
+	},
 };
 
 export default authApi;

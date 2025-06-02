@@ -16,6 +16,7 @@ const getMemberList = async (userId) => {
 					user: {
 						select: {
 							username: true,
+							id: true,
 						},
 					},
 				},

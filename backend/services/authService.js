@@ -21,10 +21,18 @@ const loginService = async (username, password) => {
 	const token = createToken(username);
 
 	const match = await bcrypt.compare(password, exists.password);
+	await prisma.user.update({
+		data: {
+			isOnline: true,
+		},
+		where: {
+			id: exists.id,
+		},
+	});
 	if (!match) {
 		throw Error("Password is not correct!");
 	}
-	return { token, username, id: exists.id };
+	return { token, username, id: exists.id, isOnline: true };
 };
 const signupService = async (username, password) => {
 	const exists = await prisma.user.findUnique({
@@ -45,11 +53,33 @@ const signupService = async (username, password) => {
 			password: hash,
 		},
 	});
-	console.log(user);
+	// console.log(user);
 	return user;
+};
+
+const logoutService = async (userId) => {
+	const exists = await prisma.user.findUnique({
+		where: {
+			id: userId,
+		},
+	});
+	if (!userId) {
+		throw Error("THis user has not existed");
+	}
+	await prisma.user.update({
+		data: {
+			isOnline: false,
+		},
+		where: {
+			id: userId,
+		},
+	});
+
+	return { message: "Logout sucessfully" };
 };
 
 module.exports = {
 	loginService,
 	signupService,
+	logoutService,
 };

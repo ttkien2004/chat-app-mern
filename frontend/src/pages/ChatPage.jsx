@@ -48,7 +48,7 @@ const ChatPage = () => {
 		],
 	];
 	const chatRef = useRef();
-	const [select, setSelect] = useState(0);
+	const [select, setSelect] = useState(-1);
 	const [myMessage, setMyMessage] = useState(""); // Gửi tin nhắn
 	const [friendMessage, setFriendMessage] = useState(""); // Bạn gửi tin nhắn
 	const [container, setContainer] = useState(messagesContainer);
@@ -56,6 +56,7 @@ const ChatPage = () => {
 	const [conversationId, setConversationId] = useState("");
 	const [friendId, setFriendId] = useState("");
 	const [conversationName, setConversationName] = useState(""); // Tên của conversation
+	const [friendOnline, setFriendOnline] = useState(false);
 	// const scrollToBottom = () => {
 
 	// }
@@ -111,18 +112,36 @@ const ChatPage = () => {
 			});
 	}, [user]);
 	useEffect(() => {
+		if (user) {
+			socket.emit("user-connected", user.id);
+		}
+	}, [user]);
+	useEffect(() => {
 		socket.on("connect", () => {
 			console.log("COnnected to socket server:", socket.id);
 		});
 
 		socket.on("receive-message", (message) => {
 			console.log("Message received: ", message);
+			// setMessages((prev) => [
+			// 	...prev,
+			// 	{
+			// 		senderId: message.senderId,
+			// 		text: message.text, // dùng "message" để thống nhất với UI
+			// 		conversationId: message.conversationId,
+			// 	},
+			// ]);
 		});
 		return () => {
 			socket.off("connect");
 			socket.off("receive-message");
 		};
 	}, []);
+	useEffect(() => {
+		if (conversationId) {
+			socket.emit("join-conversation", conversationId);
+		}
+	}, [conversationId]);
 	const sendMessage = (e) => {
 		if (e.key === "Enter") {
 			socket.emit("send-message", {
@@ -130,7 +149,21 @@ const ChatPage = () => {
 				text: myMessage,
 				conversationId: conversationId,
 			});
+			// console.log(conversationId);
+			setMessages((prev) => [
+				...prev,
+				{
+					senderId: user.id,
+					text: myMessage, // dùng "message" để thống nhất với UI
+					conversationId: conversationId,
+				},
+			]);
 		}
+	};
+	const checkUserOnline = (userId) => {
+		socket.emit("check-user-online", userId, (isOnline) => {
+			setFriendOnline(isOnline);
+		});
 	};
 	return (
 		<div
@@ -214,19 +247,23 @@ const ChatPage = () => {
 						<div style={{ marginLeft: "20px" }}>Search Message...</div>
 					</div>
 					<div className="chat-list">
-						{friendList.map((memberList) => {
+						{friendList.map((memberList, index) => {
 							return memberList.members.map(
 								(member, i) =>
 									member.userId !== user.id && (
 										<div
 											className="friend"
-											style={select === i ? { backgroundColor: "#4e71ff" } : {}}
+											style={
+												select === index ? { backgroundColor: "#4e71ff" } : {}
+											}
 											key={i}
 											onClick={() => {
-												setSelect(i);
+												console.log(member.user);
+												setSelect(index);
 												setConversationId(memberList.id);
-												// setMessages(messagesContainer[i]);
+												setMessages(memberList.messages);
 												setConversationName(member.user.username);
+												checkUserOnline(member.user.id);
 											}}
 										>
 											<div>
@@ -273,16 +310,18 @@ const ChatPage = () => {
 							}}
 						>
 							<div style={{ display: "flex", alignItems: "center" }}>
-								<i
-									className="pi pi-user"
-									style={{
-										fontSize: "30px",
-										border: "1px solid red",
-										borderRadius: "50%",
-										padding: "10px",
-										marginRight: "10px",
-									}}
-								></i>
+								<div className="pi pi-user chat-user-avatar">
+									<div
+										className="user-online-status"
+										style={
+											select !== -1
+												? friendOnline
+													? { backgroundColor: "#00ff9c" }
+													: { backgroundColor: "#A6AEBF" }
+												: {}
+										}
+									></div>
+								</div>
 								<div style={{ fontSize: "30px" }}>{conversationName}</div>
 							</div>
 							<div style={{ display: "flex" }}>
@@ -294,15 +333,15 @@ const ChatPage = () => {
 					</div>
 					<div className="chat-content" ref={chatRef}>
 						{messages.map((mess, index) =>
-							mess.senderId === myID ? (
+							mess.senderId === user.id ? (
 								<div className="my-turn" key={index}>
-									<div className="my-message">{mess.message}</div>
+									<div className="my-message">{mess.text}</div>
 									<i className="pi pi-user chat-avatar"></i>
 								</div>
 							) : (
 								<div className="friend-turn" key={index}>
 									<i className="pi pi-user chat-avatar"></i>
-									<div className="friend-message">{mess.message}</div>
+									<div className="friend-message">{mess.text}</div>
 								</div>
 							)
 						)}
