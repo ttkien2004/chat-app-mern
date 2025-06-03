@@ -1,6 +1,11 @@
 import { Button } from "primereact/button";
+import authApi from "../services/AuthService";
+import chatApi from "../services/ChatService";
+import { useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 
-const PeopleList = () => {
+const PeopleList = ({ userId }) => {
 	const list = [
 		{
 			name: "kien",
@@ -12,13 +17,36 @@ const PeopleList = () => {
 			name: "trunes",
 		},
 	];
+	const [peopleList, setPeopleList] = useState([]);
+	useEffect(() => {
+		chatApi
+			.getPeopleList(userId)
+			.then((res) => {
+				setPeopleList(res.data);
+			})
+			.catch((err) => {
+				console.log(err.error);
+			});
+	}, []);
+	const handleSendFriendReq = async (friendId) => {
+		try {
+			await chatApi.sendFriendRequest(userId, friendId);
+
+			setPeopleList((prev) => {
+				const newList = prev.filter((user) => user.id !== friendId);
+				return newList;
+			});
+		} catch (err) {
+			toast.error("Failed to send request!");
+		}
+	};
 	return (
 		<div>
 			<div style={{ fontSize: "30px", marginBottom: "30px" }}>
 				Other friends
 			</div>
 			<div>
-				{list.map((member, i) => (
+				{peopleList.map((member, i) => (
 					<div
 						key={i}
 						style={{
@@ -37,10 +65,13 @@ const PeopleList = () => {
 									marginRight: "10px",
 								}}
 							></div>
-							<div>{member.name}</div>
+							<div>{member.username}</div>
 						</div>
 						<div>
-							<Button label="Add friend"></Button>
+							<Button
+								label="Add friend"
+								onClick={() => handleSendFriendReq(member.id)}
+							></Button>
 						</div>
 					</div>
 				))}

@@ -1,4 +1,10 @@
-const { getMemberList, addMember } = require("../services/chatService");
+const {
+	getMemberList,
+	addMember,
+	sendFriendReqService,
+	getPeopleList,
+	getFriendRequests,
+} = require("../services/chatService");
 
 const getMemberListController = async (req, res) => {
 	const { userId } = req.query;
@@ -23,7 +29,40 @@ const addMemberController = async (req, res) => {
 		res.status(400).json({ error: err.message });
 	}
 };
+
+const sendFriendReqController = async (req, res) => {
+	const { userId, friendId } = req.body;
+	try {
+		const response = await sendFriendReqService(userId, friendId);
+		res.status(201).json({ data: "Send friend request successfully" });
+	} catch (err) {
+		res.status(400).json({ error: err.message });
+	}
+};
+
+const getPeopleListController = async (req, res) => {
+	const { userId } = req.query;
+	try {
+		const response = await getPeopleList(userId);
+		res.status(200).json({ data: response });
+	} catch (err) {
+		res.status(400).json({ error: err.message });
+	}
+};
+
+const getFriendRequestsController = async (req, res) => {
+	const { userId } = req.query;
+	try {
+		const response = await getFriendRequests(userId);
+		res.status(200).json({ data: response });
+	} catch (err) {
+		res.status(400).json({ error: err.message });
+	}
+};
 module.exports = {
 	getMemberListController,
 	addMemberController,
+	sendFriendReqController,
+	getPeopleListController,
+	getFriendRequestsController,
 };

@@ -235,8 +235,8 @@ const ChatPage = () => {
 							checkUserOnline={checkUserOnline}
 						/>
 					)}
-					{service === 1 && <PeopleList />}
-					{service === 2 && <FriendRequest />}
+					{service === 1 && <PeopleList userId={user.id} />}
+					{service === 2 && <FriendRequest userId={user.id} />}
 				</div>
 				<div className="chat-area">
 					<div className="chat-header">
