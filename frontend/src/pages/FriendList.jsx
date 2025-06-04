@@ -1,3 +1,5 @@
+import { useState, useMemo, useEffect } from "react";
+
 const FriendList = ({
 	friendList,
 	user,
@@ -11,6 +13,55 @@ const FriendList = ({
 	allMessages,
 	checkUserOnline,
 }) => {
+	const [prevFriendId, setPrevFriendId] = useState("");
+	const [filteredMemberList, setFilteredMemberList] = useState([]);
+	useEffect(() => {
+		if (user && friendList) {
+			// const newMemberList = useMemo(() => {
+			// 	let seenIds = new Set();
+			// 	return friendList.map((list) => {
+			// 		const filteredMembers = list.members.filter((mem) => {
+			// 			if (mem.userId !== user.id && !seenIds.has(mem.userId)) {
+			// 				seenIds.add(mem.userId);
+			// 				return true;
+			// 			}
+			// 			return false;
+			// 		});
+
+			// 		return {
+			// 			...list,
+			// 			members: filteredMembers,
+			// 		};
+			// 	});
+			// }, [friendList, user.id]);
+			// setFilteredMemberList(newMemberList);
+			let newMemberList = [];
+			let prevId = "";
+			for (let i = 0; i < friendList.length; ++i) {
+				let inserted = false;
+				// console.log(friendList[i]);
+				let membersTemp = friendList[i].members;
+				for (let j = 0; j < membersTemp.length; ++j) {
+					if (
+						membersTemp[j].userId !== prevId &&
+						membersTemp[j].userId !== user.id
+					) {
+						// setPrevFriendId(membersTemp[j].userId);
+						prevId = membersTemp[j].userId;
+						inserted = true;
+					}
+				}
+				if (inserted) {
+					newMemberList.push(friendList[i]);
+				}
+			}
+			// console.log(newMemberList, "hello");
+			setFilteredMemberList(newMemberList);
+		}
+	}, [user, friendList]);
+
+	// console.log(friendList);
+	// console.log(filteredMemberList);
 	return (
 		<>
 			{user && (
@@ -51,7 +102,7 @@ const FriendList = ({
 						<div style={{ marginLeft: "20px" }}>Search Message...</div>
 					</div>
 					<div className="chat-list">
-						{friendList.map((memberList, index) => {
+						{filteredMemberList.map((memberList, index) => {
 							return memberList.members.map(
 								(member, i) =>
 									member.userId !== user.id && (

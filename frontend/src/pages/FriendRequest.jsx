@@ -2,6 +2,7 @@ import { Button } from "primereact/button";
 import { useEffect, useState } from "react";
 import chatApi from "../services/ChatService";
 import moment from "moment";
+import { toast } from "react-toastify";
 
 const FriendRequest = ({ userId }) => {
 	const [friendRequests, setFriendRequests] = useState([]);
@@ -10,6 +11,7 @@ const FriendRequest = ({ userId }) => {
 			.getFriendRequests(userId)
 			.then((res) => {
 				setFriendRequests(res.data);
+				console.log(res.data);
 			})
 			.catch((err) => {
 				console.log("cannot get friend reqs");
@@ -18,10 +20,13 @@ const FriendRequest = ({ userId }) => {
 	const handleAcceptReq = async (userId, friendId) => {
 		try {
 			await chatApi.addMember(userId, friendId);
-			setFriendRequests((prev) => {
-				let newFriendReq = prev.filter((req) => req.id !== friendId);
-				return newFriendReq;
-			});
+			setTimeout(() => {
+				toast.success("Accept successfully!");
+				setFriendRequests((prev) => {
+					let newFriendReq = prev.filter((req) => req.id !== friendId);
+					return newFriendReq;
+				});
+			}, 2000);
 		} catch (err) {
 			console.log(err.error);
 		}
@@ -59,7 +64,7 @@ const FriendRequest = ({ userId }) => {
 								rounded
 								outlined
 								style={{ marginRight: "10px" }}
-								onClick={() => handleAcceptReq(userId, req.id)}
+								onClick={() => handleAcceptReq(userId, req.userId)}
 							/>
 							<Button icon="pi pi-times" rounded outlined severity="danger" />
 						</div>

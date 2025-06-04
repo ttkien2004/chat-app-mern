@@ -53,7 +53,7 @@ io.on("connection", (socket) => {
 	});
 	socket.on("check-user-online", (userId, callback) => {
 		const isOnline = onlineUsers.has(userId);
-		console.log(userId, isOnline);
+		// console.log(userId, isOnline);
 		callback(isOnline);
 	});
 

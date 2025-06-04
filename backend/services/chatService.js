@@ -37,6 +37,7 @@ const getMemberList = async (userId) => {
 };
 
 const addMember = async (memberId, userId) => {
+	console.log(memberId, userId);
 	const conversation = await prisma.conversation.create({
 		data: {
 			isGroup: false,
@@ -67,10 +68,23 @@ const addMember = async (memberId, userId) => {
 	if (!conversation) {
 		throw Error("Cannot create new conversation");
 	}
+
+	await prisma.friendRequest.updateMany({
+		where: {
+			userId: memberId,
+			friendId: userId,
+		},
+		data: {
+			isAccepted: true,
+		},
+	});
 	return conversation;
 };
 
 const sendFriendReqService = async (userId, friendId) => {
+	if (userId === friendId) {
+		throw Error("You cannot send request to yourself!");
+	}
 	const exists = await prisma.user.findUnique({
 		where: {
 			id: userId,
@@ -116,6 +130,22 @@ const sendFriendReqService = async (userId, friendId) => {
 					id: friendId,
 				},
 			},
+		},
+	});
+	await prisma.user.update({
+		data: {
+			isSendRequest: true,
+		},
+		where: {
+			id: userId,
+		},
+	});
+	await prisma.user.update({
+		data: {
+			isSendRequest: true,
+		},
+		where: {
+			id: friendId,
 		},
 	});
 	// console.log(friendReq);
@@ -172,6 +202,7 @@ const getPeopleList = async (userId) => {
 			id: {
 				notIn: [userId, ...notIncludeUserId],
 			},
+			isSendRequest: false,
 		},
 		select: {
 			id: true,
@@ -198,13 +229,16 @@ const getFriendRequests = async (userId) => {
 						},
 					},
 				},
+				where: {
+					isAccepted: false,
+				},
 			},
 		},
 	});
 	if (!user) {
 		throw Error("User has not existed");
 	}
-	console.log(user);
+	// console.log(user);
 	return user.receiveRequest;
 };
 module.exports = {
