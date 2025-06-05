@@ -67,6 +67,6 @@ npm install
 
 ## 📬 Contact
 
-### 📧 Email: [ttkien2004@gmail.com]
+### 📧 Email: ttkien2004@gmail.com
 
-### 🐱 GitHub: [https://github.com/ttkien2004]
+### 🐱 GitHub: https://github.com/ttkien2004
