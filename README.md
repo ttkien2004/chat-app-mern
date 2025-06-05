@@ -41,9 +41,32 @@ schema.
 ### 🔙 Backend
 
 ```bash
-cd server
+cd backend
 npm install
 npx prisma generate
 npx prisma db push
 npm run dev
 ```
+
+### 🛠️ Configuration
+
+In backend folder, add this `.env` with this contents:
+
+```bash
+PORT=3000
+SECRET=treconsamactruyentainhaubaidongdaosdffasdasddasda
+DATABASE_URL=mongodb+srv://<your_username>:<your_password>@chat-app-db.bwb12o4.mongodb.net/chat-app-db?retryWrites=true&w=majority&appName=<your_cluster_name>
+```
+
+### 🔙 Frontend
+
+```bash
+cd frontend
+npm install
+```
+
+## 📬 Contact
+
+### 📧 Email: [ttkien2004@gmail.com]
+
+### 🐱 GitHub: [https://github.com/ttkien2004]
